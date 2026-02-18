@@ -1,0 +1,114 @@
+[2026-01-14 15:23:55,269][__main__][INFO] - Configuration:
+[2026-01-14 15:23:55,269][__main__][INFO] - model:
+  model_a:
+    name: gemini-3-flash-preview:cloud
+    temperature: 1.0
+    max_tokens: 16382
+    top_p: 0.95
+  model_b:
+    name: qwen3-vl:235b-instruct-cloud
+    temperature: 0.6
+    max_tokens: 16382
+    top_p: 0.8
+    extra_body:
+      topk: 20
+      presence_penalty: 1.6
+  judge_model:
+    name: gemini-3-flash-preview:cloud
+    temperature: 0.0
+    max_tokens: 16382
+    top_p: 0.95
+data:
+  input_path: data/filtered_eco_hr_kr_df.csv
+  output_path: outputs/cot_dpo_dataset.jsonl
+  columns:
+    problems: problems
+    paragraph: paragraph
+  validation:
+    check_missing: true
+    skip_invalid: true
+api:
+  base_url: https://ollama.com/v1/
+  timeout: 200.0
+  api_key_env: OLLAMA_API_KEY
+processing:
+  batch_size: 1
+  sleep_interval: 1.0
+  max_retries: 3
+strategy:
+  use_judge: true
+  skip_both_wrong: true
+  filter_strategies:
+  - Both_Correct_Judge_A
+  - A_Correct
+logging:
+  level: INFO
+  save_logs: true
+  log_dir: outputs/logs
+
+[2026-01-14 15:23:55,270][__main__][INFO] - Initializing LLM client...
+[2026-01-14 15:23:55,295][__main__][INFO] - Loading data from data/filtered_eco_hr_kr_df.csv...
+[2026-01-14 15:23:55,316][__main__][INFO] - Loaded 156 problems
+[2026-01-14 15:23:55,316][__main__][INFO] - Initializing DPO generator...
+[2026-01-14 15:23:55,316][__main__][INFO] - Starting dataset generation...
+[2026-01-14 15:23:55,317][src.models.dpo_generator][INFO] - [0] Processing problem
+[2026-01-14 15:24:04,757][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:17,483][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:17,486][src.models.dpo_generator][INFO] - [0] Collected (A_Correct) | Total: 1
+[2026-01-14 15:24:18,491][src.models.dpo_generator][INFO] - [1] Processing problem
+[2026-01-14 15:24:27,292][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:38,576][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:38,577][src.models.dpo_generator][INFO] - [1] Collected (A_Correct) | Total: 2
+[2026-01-14 15:24:39,583][src.models.dpo_generator][INFO] - [2] Processing problem
+[2026-01-14 15:24:49,378][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:59,626][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:24:59,627][src.models.dpo_generator][INFO] - [2] Collected (A_Correct) | Total: 3
+[2026-01-14 15:25:00,633][src.models.dpo_generator][INFO] - [3] Processing problem
+[2026-01-14 15:25:11,323][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:25:39,117][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:25:44,866][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:25:44,867][src.models.dpo_generator][INFO] - [3] Collected (Both_Correct_Judge_A) | Total: 4
+[2026-01-14 15:25:45,870][src.models.dpo_generator][INFO] - [4] Processing problem
+[2026-01-14 15:25:56,210][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:26:24,282][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:26:29,904][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:26:29,905][src.models.dpo_generator][INFO] - [4] Collected (Both_Correct_Judge_A) | Total: 5
+[2026-01-14 15:26:30,907][src.models.dpo_generator][INFO] - [5] Processing problem
+[2026-01-14 15:26:42,824][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:26:56,412][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:26:56,414][src.models.dpo_generator][INFO] - [5] Skipped (Both_Wrong)
+[2026-01-14 15:26:57,417][src.models.dpo_generator][INFO] - [6] Processing problem
+[2026-01-14 15:27:04,726][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:27:25,058][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:27:25,060][src.models.dpo_generator][INFO] - [6] Collected (A_Correct) | Total: 6
+[2026-01-14 15:27:26,066][src.models.dpo_generator][INFO] - [7] Processing problem
+[2026-01-14 15:27:35,812][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:27:43,692][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:27:43,694][src.models.dpo_generator][INFO] - [7] Collected (A_Correct) | Total: 7
+[2026-01-14 15:27:44,698][src.models.dpo_generator][INFO] - [8] Processing problem
+[2026-01-14 15:27:52,295][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:02,905][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:09,498][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:09,499][src.models.dpo_generator][INFO] - [8] Collected (Both_Correct_Judge_A) | Total: 8
+[2026-01-14 15:28:10,503][src.models.dpo_generator][INFO] - [9] Processing problem
+[2026-01-14 15:28:18,868][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:28,777][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:28,779][src.models.dpo_generator][INFO] - [9] Collected (A_Correct) | Total: 9
+[2026-01-14 15:28:29,785][src.models.dpo_generator][INFO] - [10] Processing problem
+[2026-01-14 15:28:37,595][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:46,701][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:28:46,704][src.models.dpo_generator][INFO] - [10] Collected (A_Correct) | Total: 10
+[2026-01-14 15:28:47,705][src.models.dpo_generator][INFO] - [11] Processing problem
+[2026-01-14 15:28:55,600][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:06,217][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:06,218][src.models.dpo_generator][INFO] - [11] Collected (A_Correct) | Total: 11
+[2026-01-14 15:29:07,225][src.models.dpo_generator][INFO] - [12] Processing problem
+[2026-01-14 15:29:14,915][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:29,225][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:29,227][src.models.dpo_generator][INFO] - [12] Collected (A_Correct) | Total: 12
+[2026-01-14 15:29:30,230][src.models.dpo_generator][INFO] - [13] Processing problem
+[2026-01-14 15:29:38,147][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:58,472][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"
+[2026-01-14 15:29:58,475][src.models.dpo_generator][INFO] - [13] Collected (A_Correct) | Total: 13
+[2026-01-14 15:29:59,481][src.models.dpo_generator][INFO] - [14] Processing problem
+[2026-01-14 15:30:08,304][httpx][INFO] - HTTP Request: POST https://ollama.com/v1/chat/completions "HTTP/1.1 200 OK"

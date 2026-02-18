@@ -1,0 +1,9 @@
+name: "Qwen3-14B-bnb-4bit"      
+path: "unsloth/Qwen3-14B-bnb-4bit" 
+load_in_4bit: true
+lora_r: 16
+lora_alpha: 16
+torch_dtype: "bfloat16"
+target_modules: ["gate_proj", "up_proj", "down_proj"]
+
+chat_template: "qwen3-thinking" # 사용하시는 템플릿 이름

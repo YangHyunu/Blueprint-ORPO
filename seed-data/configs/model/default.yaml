@@ -1,0 +1,21 @@
+# Model Configuration
+model_a:
+  name: "gemini-3-flash-preview:cloud"
+  temperature: 1.0
+  max_tokens: 16382
+  top_p: 0.95
+
+model_b:
+  name: "qwen3-vl:235b-instruct-cloud"
+  temperature: 0.6
+  max_tokens: 16382
+  top_p: 0.8
+  extra_body:
+    topk: 20
+    presence_penalty: 1.6
+
+judge_model:
+  name: "gemini-3-flash-preview:cloud"
+  temperature: 0.0
+  max_tokens: 16382
+  top_p: 0.95

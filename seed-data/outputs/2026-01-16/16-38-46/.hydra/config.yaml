@@ -1,0 +1,46 @@
+model:
+  model_a:
+    name: gemini-3-flash-preview:cloud
+    temperature: 1.0
+    max_tokens: 16382
+    top_p: 0.95
+  model_b:
+    name: qwen3-vl:235b-instruct-cloud
+    temperature: 0.6
+    max_tokens: 16382
+    top_p: 0.8
+    extra_body:
+      topk: 20
+      presence_penalty: 1.6
+  judge_model:
+    name: gemini-3-flash-preview:cloud
+    temperature: 0.0
+    max_tokens: 16382
+    top_p: 0.95
+data:
+  input_path: data/filtered_eco_hr_kr_df.csv
+  output_path: outputs/cot_dpo_dataset.jsonl
+  columns:
+    problems: problems
+    paragraph: paragraph
+  validation:
+    check_missing: true
+    skip_invalid: true
+api:
+  base_url: https://ollama.com/v1/
+  timeout: 200.0
+  api_key_env: OLLAMA_API_KEY
+processing:
+  batch_size: 1
+  sleep_interval: 1.0
+  max_retries: 3
+strategy:
+  use_judge: true
+  skip_both_wrong: true
+  filter_strategies:
+  - Both_Correct_Judge_A
+  - A_Correct
+logging:
+  level: INFO
+  save_logs: true
+  log_dir: outputs/logs

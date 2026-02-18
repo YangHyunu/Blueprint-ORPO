@@ -1,0 +1,43 @@
+# Main Configuration
+defaults:
+  - model: default
+  - data: default
+  - _self_
+
+# Data paths
+data:
+  input_path: "data/filtered_eco_hr_kr_df.csv"
+  output_path: "outputs/cot_dpo_dataset.jsonl"
+  
+# API Configuration
+api:
+  base_url: "https://ollama.com/v1/"
+  timeout: 200.0
+  api_key_env: "OLLAMA_API_KEY"
+  
+# Processing Configuration
+processing:
+  batch_size: 1
+  sleep_interval: 1.0
+  max_retries: 3
+  
+# Strategy Configuration
+strategy:
+  use_judge: true
+  skip_both_wrong: true
+  filter_strategies:
+    - "Both_Correct_Judge_A"
+    - "A_Correct"
+
+# Logging
+logging:
+  level: "INFO"
+  save_logs: true
+  log_dir: "outputs/logs"
+
+# Output
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: outputs/multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}

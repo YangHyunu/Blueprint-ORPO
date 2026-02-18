@@ -1,0 +1,29 @@
+defaults:
+  # [수정 1] 여기엔 '허깅페이스 경로'가 아니라 'configs/model/ 폴더 안에 있는 파일 이름'을 적어야 합니다.
+  # 만약 파일 이름이 'qwen3-14b.yaml'이라면 아래처럼 적으세요.
+  - model: Qwen3-14B-bnb-4bit
+  - dataset: Hard_Dataset_Orpo
+  - _self_
+
+training:
+  output_dir: "outputs"
+  
+  max_seq_length: 8192 
+  max_prompt_length: 4096 # (seq_length의 절반)
+  max_completion_length: 4096 # (seq_length의 절반)
+  num_train_epochs: 2
+  
+  learning_rate: 5e-6
+  batch_size: 1
+  gradient_accumulation_steps: 6
+  logging_steps: 1
+  optim: "adamw_8bit"
+  seed: 3407
+  warmup_ratio: 0.1
+  lr_scheduler_type: "cosine"
+  beta: 0.8 # ORPO 파라미터
+
+wandb:
+  project: "llm-orpo-lab"
+  # model.name 변수는 model 설정 파일 안의 name 값을 가져옵니다.
+  run_name: "${model.name}-${dataset.name}-${now:%Y-%m-%d_%H-%M}"
