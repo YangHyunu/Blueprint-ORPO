@@ -1,4 +1,8 @@
-# Reasoning Distillation via Analogical Reasoning Transfer
+# Reasoning Distillation via Analogical Prompting
+**소수의 Preference 데이터로 추론 경로를 정렬하는 경량 최적화 전략**
+
+Inspired by [ORPO](https://arxiv.org/abs/2403.07691) & [Analogical Prompting (ICLR 2024)](https://arxiv.org/abs/2310.01714)
+
 <div align="center">
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/)
@@ -9,109 +13,158 @@
 
 </div>
 
-## Project Overview
+---
 
-본 프로젝트는 **Naver Boostcamp AI Tech 8기** 과정의 일환으로 수행되었다.
-KMMLU, 수능형 문제, KLUE MRC 등 **고난이도 다단계 추론 문제**에서 Qwen3 시리즈 모델의 성능 한계를 분석하고,
-이를 개선하기 위한 방법으로 **Reasoning Distillation via Analogical Reasoning Transfer**를 제안한다.
+## 대회 소개
 
-본 접근은 정답이나 지식 자체를 증류하는 것이 아니라,
-**문제를 해결하는 추론 경로(Reasoning Path)를 정렬(alignment)하는 것**을 목표로 한다.
+**네이버 커넥트재단 부스트캠프 AI Tech 8기** — Multiple Choice QA
+
+KMMLU, 수능형 문제, KLUE MRC 등 다양한 한국어 벤치마크에서 **고난이도 다단계 추론 문제**의 정답률을 높이는 것이 목표입니다.
+
+- **Task**: 주어진 문제와 선지에서 정답을 선택하는 Multiple Choice QA
+- **Evaluation Metric**: Accuracy, F1
+- **Team Repository**: (링크)
+
+### Result
+
+| 리더보드 | EM Score |
+|----------|----------|
+| 200 ORPO Pairs | **+14문제(≈ +3.27%p)** on 수능 425문항 |
+
+> 이 프로젝트는 위 대회에서 **Qwen3-14B의 추론 성능 최적화**를 위해 개발한 Reasoning Alignment 시스템입니다.
 
 ---
-## TL;DR
 
-### 1) Key result
-- 200 ORPO Preference Pairs → Upstage 수능(425문항)에서 **+14문제(≈ +3.27%p)** 추가 정답  
+## 목차
+
+1. [프로젝트 개요](#1-프로젝트-개요)
+2. [문제 정의: 왜 Reasoning Alignment인가](#2-문제-정의-왜-reasoning-alignment인가)
+3. [왜 SFT가 아닌가](#3-왜-sft가-아닌가)
+4. [방법론: Preference-based Reasoning Alignment](#4-방법론-preference-based-reasoning-alignment)
+5. [실험 결과](#5-실험-결과)
+6. [Key Findings](#6-key-findings)
+7. [빠른 시작](#7-빠른-시작)
+8. [참고 자료](#8-참고-자료)
+
+---
+
+## 1. 프로젝트 개요
+
+이 프로젝트는 **한국어 수능형 다단계 추론 문제**에서 Qwen3 시리즈의 성능 한계를 분석하고,
+이를 개선하기 위해 **Reasoning Distillation via Analogical Prompting**을 적용한 시스템입니다.
+
+핵심 아이디어는 단순합니다:
+
+> 정답이나 지식 자체를 증류하는 것이 아니라,
+> **문제를 해결하는 추론 경로(Reasoning Path)를 정렬(alignment)하는 것**.
+
+### 1.1 TL;DR
+
+- 200 ORPO Preference Pairs → Upstage 수능(425문항)에서 **+14문제(≈ +3.27%p)** 추가 정답
 - Qwen3‑14B‑ORPO가 **Qwen3‑30B‑A3B‑Instruct와 동급 또는 우수**한 과목별 성능 달성
 
-### 2) 핵심 요약
-- 입력: Teacher(Gemini‑3‑Flash)로부터 선별한 **Hard Negatives** (200개)  
-- 방법: Teacher의 추론 경로 전이(Analogical Transfer) + ORPO로 Decision Boundary만 국소 정렬 (SFT 불필요)  
-- 의미: 소수의 Preference 데이터로 도메인에 따라 성능 개선 가능
+### 1.2 핵심 요약
 
-## Repository Architecture
+| 항목 | 내용 |
+|------|------|
+| **입력** | Teacher(Gemini‑3‑Flash)로부터 선별한 Hard Negatives (200개) |
+| **방법** | Teacher의 추론 경로 전이(Analogical Prompting) + ORPO로 Decision Boundary만 국소 정렬 |
+| **의미** | 소수의 Preference 데이터만으로 도메인 맞춤 성능 개선 가능 (SFT 불필요) |
 
-본 프로젝트는 모노레포 구조로 구성되어 있으며, `feature/ver-3` 브랜치가 메인 허브 역할을 수행합니다.
+### 1.3 Repository Architecture
+
+모노레포 구조이며, `feature/ver-3` 브랜치가 메인 허브 역할을 합니다.
 
 | Module | 역할 | README |
 |--------|------|--------|
 | **seed-data** | 시드 문항 수집 및 Hard Negative 생성 | [상세 문서](./seed-data/README.md) |
-| **preference-data** | Analogical Transfer 기반 데이터 증강 | [상세 문서](./preference-data/README.md) |
+| **preference-data** | Analogical Prompting 기반 데이터 증강 | [상세 문서](./preference-data/README.md) |
 | **orpo-train** | ORPO 학습 파이프라인 (Hydra 설정) | [상세 문서](./orpo-train/README.md) |
-| **eda** | train , test셋 EDA | [상세 문서](./eda/README.md) |
+| **eda** | train, test셋 EDA | [상세 문서](./eda/README.md) |
+
 ---
-## Why Reasoning Alignment?
 
-### Observed Issue
+## 2. 문제 정의: 왜 Reasoning Alignment인가
 
-Qwen3 시리즈 모델은 단일 사실(fact)에 대한 질문에서는 높은 정확도를 보이지만,
-여러 정보를 연결해야 하는 **복합 인과·단계적 추론 문제**에서는 일관되게 성능이 저하된다
-(특히 한국사, 역사, 심리, 경제 계열 문제에서 두드러짐).
+### 2.1 관찰된 문제
 
-### Core Insight
+Qwen3 시리즈는 단일 사실(fact) 질문에서는 높은 정확도를 보이지만,
+여러 정보를 연결해야 하는 **복합 인과·단계적 추론 문제**에서는 일관되게 성능이 떨어집니다.
+특히 한국사, 역사, 심리, 경제 계열에서 두드러집니다.
 
-2025년 기준 LLM은 이미 충분한 지식을 보유하고 있다.
-문제는 *무엇을 아는가*가 아니라, **그 지식을 어떤 순서와 기준으로 연결하는가**이다.
+### 2.2 Core Insight
+
+2025년 기준 LLM은 이미 충분한 지식을 보유하고 있습니다.
+문제는 *무엇을 아는가*가 아니라, **그 지식을 어떤 순서와 기준으로 연결하는가**입니다.
 
 > 즉, 성능 저하의 원인은 지식 부족이 아니라
-> **추론 경로(Reasoning Path)의 정렬 실패**에 있다.
+> **추론 경로(Reasoning Path)의 정렬 실패**에 있습니다.
 
 ---
 
-## Why Not SFT?
+## 3. 왜 SFT가 아닌가
 
-Supervised Fine-Tuning(SFT)은 가장 직관적인 해결책이지만,
-이미 고도로 학습된 모델에는 다음과 같은 위험이 존재한다.
+Supervised Fine-Tuning(SFT)이 가장 직관적인 해결책이지만,
+이미 충분히 학습된 모델에는 다음과 같은 위험이 따릅니다.
 
-* **Distribution Collapse**: 소량 데이터로 인한 출력 분포 왜곡
-* **Catastrophic Forgetting**: 기존 추론 능력 손실
-* Thinking / Non-Thinking 하이브리드 모델에서 추론 품질 저하
+| 위험 요소 | 설명 |
+|-----------|------|
+| **Distribution Collapse** | 소량 데이터로 인한 출력 분포 왜곡 |
+| **Catastrophic Forgetting** | 기존 추론 능력 손실 |
+| **추론 품질 저하** | Thinking / Non-Thinking 하이브리드 모델에서 특히 두드러짐 |
 
-따라서 본 프로젝트는 SFT 대신,
-**기존 분포를 유지하면서 추론 경로만 선택적으로 정렬하는 방식**을 채택한다.
-
----
-
-## Our Approach: Preference-based Reasoning Alignment
-
-본 연구는 **ORPO(Odds Ratio Preference Optimization)** 기반 Preference Learning을 활용하여:
-
-* 모델의 기존 분포를 보존하면서
-* 올바른 추론 경로는 강화하고
-* 잘못된 추론 경로는 억제한다
-
-### Key Components
-
-1. **Hard Negative Mining**
-   Teacher는 성공했으나 Student는 실패한 문제만 선택적으로 사용
-
-2. **Logical Structure Extraction**
-   시드 문항에서 도메인 독립적인 추론 구조 추출
-
-3. **Analogical Reasoning Transfer**
-   추론 구조를 새로운 도메인·맥락으로 전이
-
-4. **ORPO-based Alignment**
-   Chosen / Rejected 간 Odds Ratio 최적화
+이러한 이유로 SFT 대신,
+**기존 분포를 유지하면서 추론 경로만 선택적으로 정렬하는 방식**을 채택했습니다.
 
 ---
 
-### Hard Negative Mining
+## 4. 방법론: Preference-based Reasoning Alignment
+
+**ORPO(Odds Ratio Preference Optimization)** 기반 Preference Learning을 활용합니다.
+모델의 기존 분포를 보존하면서, 올바른 추론 경로는 강화하고 잘못된 추론 경로는 억제합니다.
+
+### 4.1 전체 파이프라인
+
+```
+Teacher(Gemini-3-Flash)            Student(Qwen3-14B)
+        │                                  │
+        ├── 성공 추론 경로 (Golden Path)     ├── 실패 추론 경로 (Failed Path)
+        │                                  │
+        └──────────── 비교 ─────────────────┘
+                       │
+              Hard Negative 선별
+                       │
+            Analogical Prompting으로 증강
+                       │
+              ORPO로 Student 학습
+```
+
+### 4.2 Key Components
+
+| 단계 | 역할 |
+|------|------|
+| **Hard Negative Mining** | Teacher는 성공했으나 Student는 실패한 문제만 선택적으로 사용 |
+| **Logical Structure Extraction** | 시드 문항에서 도메인 독립적인 추론 구조 추출 |
+| **Analogical Prompting** | 추론 구조를 새로운 도메인·맥락으로 전이 |
+| **ORPO-based Alignment** | Chosen / Rejected 간 Odds Ratio 최적화 |
+
+### 4.3 Hard Negative Mining
 
 ![Hard Negative Mining Process](./asset/seed.png)
 
-Teacher는 성공했으나 Student는 실패한 문항(Hard Negative)을 집중적으로 타겟팅하여:
-1. Teacher의 성공적인 추론 경로(Golden Path)와 Student의 실패한 추론 경로(Failed Path) 추출
+Teacher는 성공했으나 Student는 실패한 문항(Hard Negative)을 집중적으로 타겟팅합니다:
+
+1. Teacher의 성공 추론 경로(Golden Path)와 Student의 실패 추론 경로(Failed Path) 추출
 2. 도메인 독립적인 논리 구조 패턴 분석
 3. 추출된 구조를 새로운 도메인/맥락으로 전이하여 증강 데이터 생성
 4. ORPO로 Student 모델 학습
 
-### Blueprint Prompting Strategy
+### 4.4 Blueprint Prompting Strategy
+
 ![alt text](./asset/work.png)
-Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 않는다.
-대신, **성공한 추론 경로와 실패한 추론 경로를 함께 제공**하는
-**Blueprint Prompting** 전략을 사용한다.
+
+Teacher에게 단순히 "비슷한 문제를 만들어줘"라고 요청하는 것이 아닙니다.
+**성공한 추론 경로와 실패한 추론 경로를 함께 제공**하는 **Blueprint Prompting** 전략을 사용합니다.
 
 **Input**
 
@@ -125,10 +178,9 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 * 명확히 구분된 Chosen / Rejected 응답 쌍
 
 이 방식은 정답 여부가 아니라
-**추론 경로의 정렬 여부를 데이터 품질 기준으로 삼는다.**
+**추론 경로의 정렬 여부를 데이터 품질 기준으로 삼습니다.**
 
----
-#### 증강 데이터 예시
+### 4.5 증강 데이터 예시
 
 **추출된 논리 구조**: `정책 목적 → 구체적 수단` 간의 **인과성 추론**
 
@@ -140,8 +192,8 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 **흥선대원군의 서원 철폐 정책**
 
 ```
-문제: 천여 곳의 서원을 철폐하고... 
-      (가) 인물이 추진한 정책으로 
+문제: 천여 곳의 서원을 철폐하고...
+      (가) 인물이 추진한 정책으로
       옳지 않은 것은?
 
 선지:
@@ -178,7 +230,7 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 **광종의 노비안검법**
 
 ```
-문제: 노비들을 조사하여 원래 
+문제: 노비들을 조사하여 원래
       양인이었던 자들은 모두 해방...
       이 국왕에 대한 설명은?
 
@@ -213,16 +265,20 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 </tr>
 </table>
 
-**전이 포인트 분석**
+#### 전이 포인트 분석
 
-- **논리 구조 보존**: "정책 목적 → 구체적 수단"의 인과성을 검증하는 추론 패턴이 동일하게 유지된다.
-- **오류 패턴 재현**: Student가 "유사 시대의 다른 인물"로 혼동하는 실수를 새로운 문제에서도 재현한다.
-- **난이도 일관성**: 배경지식과 텍스트 추론의 균형이 원본과 동일하게 유지된다.
-- **도메인 전이**: 조선 후기 → 고려 시대로 시대는 바뀌었지만, "왕권 강화"라는 정책 목적의 논리는 동일하다.
+| 분석 항목 | 설명 |
+|-----------|------|
+| **논리 구조 보존** | "정책 목적 → 구체적 수단"의 인과성을 검증하는 추론 패턴이 그대로 유지됩니다 |
+| **오류 패턴 재현** | Student가 "유사 시대의 다른 인물"로 혼동하는 실수를 새 문제에서도 재현합니다 |
+| **난이도 일관성** | 배경지식과 텍스트 추론의 균형이 원본과 동일하게 유지됩니다 |
+| **도메인 전이** | 조선 후기 → 고려 시대로 시대는 바뀌었지만, "왕권 강화"라는 정책 목적의 논리는 동일합니다 |
+
 ---
-## Performance
 
-### Evaluation Setup
+## 5. 실험 결과
+
+### 5.1 Evaluation Setup
 
 **Models**
 - Baseline (14B): Qwen3-14B-AWQ
@@ -230,15 +286,14 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 - Target (ORPO): Qwen3-14B-bnb-4bit-ORPO
 
 **Dataset**
-- Upstage 수능형 문제 869 문제 (test set)
+- Upstage 수능형 문제 869문제 (test set)
 - 총 869문항 중 `425개`의 `수능 기출문제`만 사용
 - 정답 라벨: Gemini-3-Flash + GPT-5.2 각 3회 추론 후 다수결
 
-**Key Result**
+### 5.2 Key Result
 
-200개의 ORPO 학습 데이터만으로 **약 2배 큰 30B 모델과 동급 이상의 성능** 달성
+200개의 ORPO 학습 데이터만으로 **약 2배 큰 30B 모델과 동급 이상의 성능**을 달성했습니다.
 
----
 ![image.png](./asset/plot_two.png)
 
 | 과목 (Subject) | Qwen3-14b-AWQ | Qwen3-30b-A3b-Ins | Qwen3-14b-ORPO | 문항 수 (Support) |
@@ -249,27 +304,33 @@ Teacher에게 단순히 “비슷한 문제를 생성하라”고 요청하지 �
 | 사회문화 | 58.33% | **68.75%** | 64.58% | 48 |
 | 정치와 법 | 57.14% | **60.32%** | 58.73% | 63 |
 
-> 실제 대회 test set의 경우 orpo 적용 후 f1-score가 소폭 하락 하였으나 앞서 개선하고자 했던 유형인 
-> test set에 있는 실제 수능 기출문제 425문항을 기준으로 하면 성능이 유의미하게 향상됨을 확인했다.
-> **단 200개의 데이터로도 도메인 맞춤 reasoning alignment가 가능함**을 확인했다.
+> 실제 대회 test set에서는 ORPO 적용 후 f1-score가 소폭 하락했지만,
+> 개선 대상이었던 수능 기출문제 425문항 기준으로는 성능이 유의미하게 향상되었습니다.
+> **단 200개의 데이터만으로도 도메인 맞춤 reasoning alignment가 가능함**을 확인했습니다.
 
----
-### Data Distribution Analysis [Umap Visualization]
+### 5.3 Data Distribution Analysis [UMAP Visualization]
+
 ![alt text](./asset/output.png)
-시각화 결과, UMAP 시각화에서 Hard Training Data가 수능 기출문항과 높은 중첩을 보였다.
 
-즉, Hard Mining으로 구축한 데이터가 수능 문항의 잠재적 추론 공간(Latent Space)과 매우 유사했기 때문에, 단 200개의 Preference Dataset 만으로도 강력한 도메인 정렬이 가능했던 것으로 보인다.
+UMAP 시각화에서 Hard Training Data가 수능 기출문항과 높은 중첩을 보였습니다.
 
-## Key Findings
-
-* Hard Negative만 학습하는 것이 전체 데이터보다 효율적
-* 논리 구조만 보존하면 도메인이 달라도 추론 패턴 전이 가능
-* Blueprint Prompting이 데이터 품질을 결정적으로 개선
-* ORPO는 reasoning alignment에 안정적으로 작동
+Hard Mining으로 구축한 데이터가 수능 문항의 잠재적 추론 공간(Latent Space)과 매우 유사했기 때문에,
+단 200개의 Preference Dataset만으로도 효과적인 도메인 정렬이 가능했습니다.
 
 ---
 
-## Technical Stack
+## 6. Key Findings
+
+- Hard Negative만 학습하는 것이 전체 데이터를 사용하는 것보다 효율적입니다
+- 논리 구조만 보존하면 도메인이 달라도 추론 패턴 전이가 가능합니다
+- Blueprint Prompting이 데이터 품질을 결정적으로 개선했습니다
+- ORPO는 reasoning alignment에 안정적으로 작동합니다
+
+---
+
+## 7. 빠른 시작
+
+### 7.1 Technical Stack
 
 ```yaml
 Models:
@@ -286,15 +347,22 @@ Training:
 Data:
   Source: KSAT-style questions (Upstage)
   Seed: ~200 Hard Negatives (Teacher ✓ / Student ✗)
-  Augmentation: Blueprint Prompting + Analogical Transfer
+  Augmentation: Blueprint Prompting + Analogical Prompting
 
 Evaluation:
   Metrics: Accuracy, F1, Subject-wise analysis
 ```
+
 ---
-## References
-- [ORPO: Monolithic Preference Optimization](https://arxiv.org/abs/2403.07691)
-- [Qwen Technical Report](https://arxiv.org/abs/2309.16609)
-- [Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903)
-- [Self-Rewarding Language Models](https://arxiv.org/abs/2401.10020)
-- [Analogical Reasoning in Large Language Models](https://arxiv.org/abs/2310.01714)
+
+## 8. 참고 자료
+
+| 논문 | 기여 |
+|------|------|
+| [ORPO: Monolithic Preference Optimization](https://arxiv.org/abs/2403.07691) | Odds Ratio 기반 Preference Learning |
+| [Qwen Technical Report](https://arxiv.org/abs/2309.16609) | Base 모델 아키텍처 |
+| [Chain-of-Thought Prompting](https://arxiv.org/abs/2201.11903) | 단계적 추론 유도 |
+| [Self-Rewarding Language Models](https://arxiv.org/abs/2401.10020) | 자기 개선 학습 구조 |
+| [Analogical Prompting (ICLR 2024)](https://arxiv.org/abs/2310.01714) | 유추 기반 프롬프팅 |
+| [Blueprint Prompting](https://arxiv.org/abs/2506.08669) | 구조적 프롬프트 전이 |
+| [Hard Negative Sample-Augmented DPO](https://arxiv.org/abs/2512.19728) | Hard Negative 기반 선호 학습 |
